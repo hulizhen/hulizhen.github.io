@@ -103,7 +103,7 @@
 <meta property="og:description" content="我们的应用是类似今日头条和新浪微博这样的 Feed 流（使用 UITableView 实现）产品。 在用户未登录的情况下刷新 Feed 流时，会有一定的策略在 Feed 数据源中插入登录卡片，引导用户点击该卡片进行登录。用户登录成功后会将该登录卡片从 Feed 数据源中删除并刷新 table view 界面。但昨天出了一个偶现的 bug：用户通过登录卡片登录成功后，在执行卡片删除操作时应用竟然崩溃">
 <meta property="og:locale" content="zh-Hans">
 <meta property="og:image" content="http://ohcoqbf8e.bkt.clouddn.com/20170922142316_YxpkCR_frame-stack.jpeg">
-<meta property="og:updated_time" content="2017-09-22T11:04:55.000Z">
+<meta property="og:updated_time" content="2017-09-22T11:06:23.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="记一次 UITableView 中的崩溃调试过程">
 <meta name="twitter:description" content="我们的应用是类似今日头条和新浪微博这样的 Feed 流（使用 UITableView 实现）产品。 在用户未登录的情况下刷新 Feed 流时，会有一定的策略在 Feed 数据源中插入登录卡片，引导用户点击该卡片进行登录。用户登录成功后会将该登录卡片从 Feed 数据源中删除并刷新 table view 界面。但昨天出了一个偶现的 bug：用户通过登录卡片登录成功后，在执行卡片删除操作时应用竟然崩溃">
@@ -486,7 +486,7 @@
 <li>崩溃主线程函数帧栈</li>
 </ul>
 <p><img src="http://ohcoqbf8e.bkt.clouddn.com/20170922142316_YxpkCR_frame-stack.jpeg" alt=""></p>
-<h1 id="还原崩溃现场"><a href="#还原崩溃现场" class="headerlink" title="还原崩溃现场"></a>还原崩溃现场</h1><p>顺着上述函数帧栈信息，在用户未登录的前提下去刷新 Feed 流，让登录卡片出现并登录，登录完成后执行删除登录卡片的操作。这样就比较顺利地复现了崩溃问题，但试了几次之后也发现这个问题并不是必现的。</p>
+<h1 id="复现问题"><a href="#复现问题" class="headerlink" title="复现问题"></a>复现问题</h1><p>顺着上述函数帧栈信息，在用户未登录的前提下去刷新 Feed 流，让登录卡片出现并登录，登录完成后执行删除登录卡片的操作。这样就比较顺利地复现了崩溃问题，但试了几次之后也发现这个问题并不是必现的。</p>
 <h1 id="分析问题"><a href="#分析问题" class="headerlink" title="分析问题"></a>分析问题</h1><p>从上面的信息可以初步看出崩溃是由于 table view 中显示的数据和其数据源不一致导致的。</p>
 <p>上图的 <code>-[XXXFeedListView dismissGuideCardCellView]</code> 方法中删除登录卡片时只使用了两句代码：</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">[self.listModel.dataList removeObjectAtIndex:indexPath.row];</div><div class="line">[self.listView deleteRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationNone];</div></pre></td></tr></table></figure>
@@ -826,7 +826,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#调试信息"><span class="nav-number">1.</span> <span class="nav-text">调试信息</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#还原崩溃现场"><span class="nav-number">2.</span> <span class="nav-text">还原崩溃现场</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#分析问题"><span class="nav-number">3.</span> <span class="nav-text">分析问题</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#意外收获"><span class="nav-number">3.1.</span> <span class="nav-text">意外收获</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#解决问题"><span class="nav-number">4.</span> <span class="nav-text">解决问题</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#其他方案"><span class="nav-number">5.</span> <span class="nav-text">其他方案</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#参考链接"><span class="nav-number">6.</span> <span class="nav-text">参考链接</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#调试信息"><span class="nav-number">1.</span> <span class="nav-text">调试信息</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#复现问题"><span class="nav-number">2.</span> <span class="nav-text">复现问题</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#分析问题"><span class="nav-number">3.</span> <span class="nav-text">分析问题</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#意外收获"><span class="nav-number">3.1.</span> <span class="nav-text">意外收获</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#解决问题"><span class="nav-number">4.</span> <span class="nav-text">解决问题</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#其他方案"><span class="nav-number">5.</span> <span class="nav-text">其他方案</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#参考链接"><span class="nav-number">6.</span> <span class="nav-text">参考链接</span></a></li></ol></div>
             
 
           </div>
