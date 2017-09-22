@@ -98,12 +98,12 @@
 <meta name="keywords" content="Objective-C,UITableView,Crash">
 <meta property="og:type" content="article">
 <meta property="og:title" content="记一次 UITableView 中的崩溃调试过程">
-<meta property="og:url" content="http://blog.hulizhen.me/debug-a-crash-issue-in-uitableview/index.html">
+<meta property="og:url" content="http://blog.hulizhen.me/debug-a-crash-in-uitableview/index.html">
 <meta property="og:site_name" content="智多芯的博客">
 <meta property="og:description" content="我们的应用就类似今日头条和新浪微博这样的 Feed 流（使用 UITableView 实现）产品。 在用户未登录的情况下刷新 Feed 流时，会有一定的策略在 Feed 数据源中插入登录卡片，引导用户点击该卡片进行登录。用户登录成功后会将该登录卡片从 Feed 数据源中删除并刷新 table view 界面。但昨天出了一个偶现的 bug：用户通过登录卡片登录成功后，在执行卡片删除操作时应用竟然崩溃">
 <meta property="og:locale" content="zh-Hans">
 <meta property="og:image" content="http://ohcoqbf8e.bkt.clouddn.com/20170922142316_YxpkCR_frame-stack.jpeg">
-<meta property="og:updated_time" content="2017-09-22T11:00:51.000Z">
+<meta property="og:updated_time" content="2017-09-22T11:04:04.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="记一次 UITableView 中的崩溃调试过程">
 <meta name="twitter:description" content="我们的应用就类似今日头条和新浪微博这样的 Feed 流（使用 UITableView 实现）产品。 在用户未登录的情况下刷新 Feed 流时，会有一定的策略在 Feed 数据源中插入登录卡片，引导用户点击该卡片进行登录。用户登录成功后会将该登录卡片从 Feed 数据源中删除并刷新 table view 界面。但昨天出了一个偶现的 bug：用户通过登录卡片登录成功后，在执行卡片删除操作时应用竟然崩溃">
@@ -136,7 +136,7 @@
 
 
 
-  <link rel="canonical" href="http://blog.hulizhen.me/debug-a-crash-issue-in-uitableview/"/>
+  <link rel="canonical" href="http://blog.hulizhen.me/debug-a-crash-in-uitableview/"/>
 
 
 
@@ -329,7 +329,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://blog.hulizhen.me/debug-a-crash-issue-in-uitableview/">
+    <link itemprop="mainEntityOfPage" href="http://blog.hulizhen.me/debug-a-crash-in-uitableview/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="智多芯">
@@ -399,9 +399,9 @@
                 <span class="post-meta-item-icon">
                   <i class="fa fa-comment-o"></i>
                 </span>
-                <a href="/debug-a-crash-issue-in-uitableview/#comments" itemprop="discussionUrl">
+                <a href="/debug-a-crash-in-uitableview/#comments" itemprop="discussionUrl">
                   <span class="post-comments-count disqus-comment-count"
-                        data-disqus-identifier="debug-a-crash-issue-in-uitableview/" itemprop="commentCount"></span>
+                        data-disqus-identifier="debug-a-crash-in-uitableview/" itemprop="commentCount"></span>
                 </a>
               </span>
             
@@ -409,7 +409,7 @@
 
           
           
-             <span id="/debug-a-crash-issue-in-uitableview/" class="leancloud_visitors" data-flag-title="记一次 UITableView 中的崩溃调试过程">
+             <span id="/debug-a-crash-in-uitableview/" class="leancloud_visitors" data-flag-title="记一次 UITableView 中的崩溃调试过程">
                <span class="post-meta-divider">|</span>
                <span class="post-meta-item-icon">
                  <i class="fa fa-eye"></i>
@@ -593,7 +593,7 @@
   </li>
   <li class="post-copyright-link">
     <strong>本文链接：</strong>
-    <a href="http://blog.hulizhen.me/debug-a-crash-issue-in-uitableview/" title="记一次 UITableView 中的崩溃调试过程">http://blog.hulizhen.me/debug-a-crash-issue-in-uitableview/</a>
+    <a href="http://blog.hulizhen.me/debug-a-crash-in-uitableview/" title="记一次 UITableView 中的崩溃调试过程">http://blog.hulizhen.me/debug-a-crash-in-uitableview/</a>
   </li>
   <li class="post-copyright-license">
     <strong>版权声明： </strong>
@@ -980,8 +980,8 @@
     
       <script type="text/javascript">
         var disqus_config = function () {
-          this.page.url = 'http://blog.hulizhen.me/debug-a-crash-issue-in-uitableview/';
-          this.page.identifier = 'debug-a-crash-issue-in-uitableview/';
+          this.page.url = 'http://blog.hulizhen.me/debug-a-crash-in-uitableview/';
+          this.page.identifier = 'debug-a-crash-in-uitableview/';
           this.page.title = '记一次 UITableView 中的崩溃调试过程';
         };
         var d = document, s = d.createElement('script');
