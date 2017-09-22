@@ -1,0 +1,1475 @@
+<!DOCTYPE html>
+
+
+
+
+<html class="theme-next mist" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.2" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="Swift,UserDefaults,Hashable,NSCoding," />
+
+
+
+
+
+  <link rel="alternate" href="/atom.xml" title="智多芯的博客" type="application/atom+xml" />
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.2" />
+
+
+
+
+
+
+<meta name="description" content="大部分项目都需要选择一种数据持久化方案来保存用户的偏好设置，在iOS开发中一般选择UserDefaults。下面先简单介绍下一般的实现方式，然后再介绍下我在开源项目中学到的一种新姿势。">
+<meta name="keywords" content="Swift,UserDefaults,Hashable,NSCoding">
+<meta property="og:type" content="article">
+<meta property="og:title" content="用Swift更优雅地管理用户偏好设置">
+<meta property="og:url" content="http://blog.hulizhen.me/manage-user-preferences-elegantly-in-swift/index.html">
+<meta property="og:site_name" content="智多芯的博客">
+<meta property="og:description" content="大部分项目都需要选择一种数据持久化方案来保存用户的偏好设置，在iOS开发中一般选择UserDefaults。下面先简单介绍下一般的实现方式，然后再介绍下我在开源项目中学到的一种新姿势。">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:updated_time" content="2017-03-25T10:46:34.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="用Swift更优雅地管理用户偏好设置">
+<meta name="twitter:description" content="大部分项目都需要选择一种数据持久化方案来保存用户的偏好设置，在iOS开发中一般选择UserDefaults。下面先简单介绍下一般的实现方式，然后再介绍下我在开源项目中学到的一种新姿势。">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    sidebar: {"position":"left","display":"always","offset":12,"offset_float":0,"b2t":false,"scrollpercent":true,"onmobile":true},
+    fancybox: true,
+    tabs: true,
+    motion: false,
+    duoshuo: {
+      userId: 'undefined',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://blog.hulizhen.me/manage-user-preferences-elegantly-in-swift/"/>
+
+
+
+
+
+  <title>用Swift更优雅地管理用户偏好设置 | 智多芯的博客</title>
+  
+
+
+
+
+
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?eef73d880852ae4781a016cba09fff15";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">智多芯的博客</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <h1 class="site-subtitle" itemprop="description">iOS/macOS开发者</h1>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off"
+             placeholder="搜索..." spellcheck="false"
+             type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://blog.hulizhen.me/manage-user-preferences-elegantly-in-swift/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="智多芯">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="智多芯的博客">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h2 class="post-title" itemprop="name headline">用Swift更优雅地管理用户偏好设置</h2>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-03-11T20:31:21+08:00">
+                2017-03-11
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/技术分享/" itemprop="url" rel="index">
+                    <span itemprop="name">技术分享</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/manage-user-preferences-elegantly-in-swift/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count"
+                        data-disqus-identifier="manage-user-preferences-elegantly-in-swift/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+             <span id="/manage-user-preferences-elegantly-in-swift/" class="leancloud_visitors" data-flag-title="用Swift更优雅地管理用户偏好设置">
+               <span class="post-meta-divider">|</span>
+               <span class="post-meta-item-icon">
+                 <i class="fa fa-eye"></i>
+               </span>
+               
+                 <span class="post-meta-item-text">阅读次数 </span>
+               
+                 <span class="leancloud-visitors-count"></span>
+             </span>
+          
+
+          
+
+          
+            <div class="post-wordcount">
+              
+                
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">字数统计</span>
+                
+                <span title="字数统计">
+                  
+                </span>
+              
+
+              
+                <span class="post-meta-divider">|</span>
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-clock-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">阅读时长</span>
+                
+                <span title="阅读时长">
+                  
+                </span>
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>大部分项目都需要选择一种数据持久化方案来保存用户的偏好设置，在iOS开发中一般选择<code>UserDefaults</code>。下面先简单介绍下一般的实现方式，然后再介绍下我在开源项目中学到的一种新姿势。</p>
+<a id="more"></a>
+<h1 id="准备"><a href="#准备" class="headerlink" title="准备"></a>准备</h1><p>项目中除了要支持保存基本数据类型，也要支持自定义类型。为了简化描述，本文只选择了两种不同的基本数据类型和一种自定义类型。其中<code>launchAtLogin</code>是<code>Bool</code>型，<code>launchCount</code>是<code>Int</code>型，<code>userInfo</code>定义如下：</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">final</span> <span class="class"><span class="keyword">class</span> <span class="title">UserInfo</span>: <span class="title">NSObject</span>, <span class="title">NSCoding</span> </span>&#123;</div><div class="line">    <span class="keyword">var</span> id = <span class="number">0</span></div><div class="line">    <span class="keyword">var</span> name = <span class="string">""</span></div><div class="line">    </div><div class="line">    <span class="keyword">convenience</span> <span class="keyword">init</span>(id: <span class="type">Int</span>, name: <span class="type">String</span>) &#123;</div><div class="line">        <span class="keyword">self</span>.<span class="keyword">init</span>()</div><div class="line"></div><div class="line">        <span class="keyword">self</span>.id = id</div><div class="line">        <span class="keyword">self</span>.name = name</div><div class="line">    &#125;</div><div class="line">    </div><div class="line">    <span class="keyword">convenience</span> <span class="keyword">required</span> <span class="keyword">init</span>?(coder aDecoder: <span class="type">NSCoder</span>) &#123;</div><div class="line">        <span class="keyword">self</span>.<span class="keyword">init</span>()</div><div class="line"></div><div class="line">        <span class="keyword">for</span> child <span class="keyword">in</span> <span class="type">Mirror</span>(reflecting: <span class="keyword">self</span>).children &#123;</div><div class="line">            <span class="keyword">if</span> <span class="keyword">let</span> key = child.label &#123;</div><div class="line">                setValue(aDecoder.decodeObject(forKey: key), forKey: key)</div><div class="line">            &#125;</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">    </div><div class="line">    <span class="function"><span class="keyword">func</span> <span class="title">encode</span><span class="params">(with aCoder: NSCoder)</span></span> &#123;</div><div class="line">        <span class="keyword">for</span> child <span class="keyword">in</span> <span class="type">Mirror</span>(reflecting: <span class="keyword">self</span>).children &#123;</div><div class="line">            <span class="keyword">if</span> <span class="keyword">let</span> key = child.label &#123;</div><div class="line">                aCoder.encode(value(forKey: key), forKey: key)</div><div class="line">            &#125;</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>注：由于自定义类需要遵循<code>NScoding</code>协议并编码成<code>Data</code>格式才能通过<code>UserDefaults</code>保存。以上代码通过<code>Mirror</code>去遍历对象属性来实现<code>NSCoding</code>协议，可参考前一篇博文：<a href="https://hulizhen.github.io/2017/03/08/traverse-properties-of-object-using-swift-reflection/" target="_blank" rel="external">利用Swift的反射机制简化代码</a>。当然，也可以将自定义类型转换成字典，然后通过<code>UserDefaults</code>提供的读写字典的方法访问。</p>
+<h1 id="一般的方式"><a href="#一般的方式" class="headerlink" title="一般的方式"></a>一般的方式</h1><p>在较小的项目中由于偏好设置的数目和读写的次数不多，直接用下面这种一般的方式保存也不太会觉得哪里不妥或效率不高。</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">struct</span> <span class="title">PreferenceKey</span> </span>&#123;</div><div class="line">    <span class="keyword">static</span> <span class="keyword">let</span> launchAtLogin = <span class="string">"LaunchAtLogin"</span></div><div class="line">    <span class="keyword">static</span> <span class="keyword">let</span> launchCount = <span class="string">"LaunchCount"</span></div><div class="line">    <span class="keyword">static</span> <span class="keyword">let</span> userInfo = <span class="string">"UserInfo"</span></div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="function"><span class="keyword">func</span> <span class="title">demo</span><span class="params">()</span></span> &#123;</div><div class="line">    <span class="keyword">let</span> userDefaults = <span class="type">UserDefaults</span>.standard</div><div class="line">    </div><div class="line">    <span class="comment">// Register default preferences.</span></div><div class="line">    <span class="keyword">var</span> userInfoData = <span class="type">NSKeyedArchiver</span>.archivedData(withRootObject: <span class="type">UserInfo</span>(id: <span class="number">0</span>, name: <span class="string">""</span>))</div><div class="line">    <span class="keyword">let</span> defaultPreferences: [<span class="type">String</span>: <span class="type">Any</span>] = [</div><div class="line">        <span class="type">PreferenceKey</span>.launchAtLogin: <span class="literal">false</span>,</div><div class="line">        <span class="type">PreferenceKey</span>.launchCount: <span class="number">0</span>,</div><div class="line">        <span class="type">PreferenceKey</span>.userInfo: userInfoData,</div><div class="line">        ]</div><div class="line">    userDefaults.register(defaults: defaultPreferences)</div><div class="line">    </div><div class="line">    <span class="comment">// Test data.</span></div><div class="line">    <span class="keyword">var</span> launchAtLogin = <span class="literal">true</span></div><div class="line">    <span class="keyword">var</span> launchCount = <span class="number">10</span></div><div class="line">    <span class="keyword">var</span> userInfo = <span class="type">UserInfo</span>(id: <span class="number">121</span>, name: <span class="string">"Fox"</span>)</div><div class="line">    userInfoData = <span class="type">NSKeyedArchiver</span>.archivedData(withRootObject: userInfo)</div><div class="line">    </div><div class="line">    <span class="comment">// Write preferences.</span></div><div class="line">    userDefaults.<span class="keyword">set</span>(launchAtLogin, forKey: <span class="type">PreferenceKey</span>.launchAtLogin)</div><div class="line">    userDefaults.<span class="keyword">set</span>(launchCount, forKey: <span class="type">PreferenceKey</span>.launchCount)</div><div class="line">    userDefaults.<span class="keyword">set</span>(userInfoData, forKey: <span class="type">PreferenceKey</span>.userInfo)</div><div class="line">    </div><div class="line">    <span class="comment">// Read preferences.</span></div><div class="line">    launchAtLogin = userDefaults.bool(forKey: <span class="type">PreferenceKey</span>.launchAtLogin)</div><div class="line">    launchCount = userDefaults.integer(forKey: <span class="type">PreferenceKey</span>.launchCount)</div><div class="line">    userInfoData = userDefaults.object(forKey: <span class="type">PreferenceKey</span>.userInfo) <span class="keyword">as</span>! <span class="type">Data</span></div><div class="line">    userInfo = <span class="type">NSKeyedUnarchiver</span>.unarchiveObject(with: userInfoData) <span class="keyword">as</span>! <span class="type">UserInfo</span></div><div class="line">    </div><div class="line">    <span class="comment">// Check preferences.</span></div><div class="line">    <span class="keyword">for</span> (key, value) <span class="keyword">in</span> userDefaults.dictionaryRepresentation() &#123;</div><div class="line">        <span class="built_in">print</span>(<span class="string">"<span class="subst">\(key)</span>: <span class="subst">\(value)</span>"</span>)</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h1 id="更优雅的方式"><a href="#更优雅的方式" class="headerlink" title="更优雅的方式"></a>更优雅的方式</h1><p>上面这种方式看着不那么优雅，每次读写相应设置也需要多敲一些代码，降低了编码效率，当偏好设置选项多起来后缺点就更明显了。另外，读取设置时需要知道该设置的类型，然后调用<code>UserDefaults</code>相应的实例方法。如<code>PreferenceKey.launchAtLogin</code>是<code>Bool</code>型，需要<code>launchAtLogin = userDefaults.bool(forKey: PreferenceKey.launchAtLogin)</code>。读取自定义类型时，还需要进行类型转换。如<code>userInfo = userDefaults.object(forKey: PreferenceKey.userInfo) as! UserInfo</code>。</p>
+<p>后来在开源编辑器项目CotEditor中看到了一种比较巧妙的实现方式，最终可以通过类似<code>Preferences[.launchAtLogin]</code>的形式来读写相应的偏好设置，看着有点像访问字典的方式。实际上，这种方式的主要工作就是实现类似字典的语法。下面就来看看如何实现这种访问方式。</p>
+<h2 id="Preference-Key"><a href="#Preference-Key" class="headerlink" title="Preference Key"></a>Preference Key</h2><p>在Swift中如果想让自定义类作为Key去访问某个集合中的元素，那么必须满足两个条件：</p>
+<ul>
+<li>用来访问集合元素的Key类型本身需要遵循<a href="http://swiftdoc.org/v3.0/protocol/Hashable/" target="_blank" rel="external"><code>Hashable</code></a>协议。</li>
+</ul>
+<ul>
+<li>集合实现了<code>subscript</code>操作符，支持通过方括号<code>[]</code>访问集合元素。</li>
+</ul>
+<h3 id="Hashable"><a href="#Hashable" class="headerlink" title="Hashable"></a>Hashable</h3><figure class="highlight swift"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">protocol</span> <span class="title">Hashable</span> : <span class="title">Equatable</span> </span>&#123;</div><div class="line">    <span class="keyword">var</span> hashValue: <span class="type">Int</span> &#123; <span class="keyword">get</span> &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p><code>Hashable</code>协议中只定义了一个整型的哈希值<code>hashValue</code>，在Swift中任何遵循了该协议的类型都可以用来当做<code>Set</code>或<code>Dictionary</code>的Key。官方文档里面提到，在Swift标准库中很多基本类型遵循了<code>Hashable</code>协议，如字符串、整型、浮点型、布尔型等。对于自定义类型也只要提供一个<code>hashValue</code>即可。为了保证访问字典时性能，需要保证同一个对象的哈希值相等，但不同对象的哈希值也是可以相等的。其实我们可以利用<code>String</code>类型本身已经实现了<code>Hashable</code>协议这点省去计算哈希值的工作，下面的<code>RawRepresentable</code>协议可以帮我们达到目的。</p>
+<h3 id="RawRepresentable"><a href="#RawRepresentable" class="headerlink" title="RawRepresentable"></a>RawRepresentable</h3><p><code>RawRepresentable</code>协议一样很简洁，定义了一个初始化方法<code>init?(rawValue:)</code>，和<code>rawValue</code>。</p>
+<p>正如上面提到的，Swift中的<code>String</code>类型本身就已经遵循了<code>Hashable</code>协议，我们可以利用这一点直接在自定义类型中引入一个字符串类型的<code>rawValue</code>，并通过计算型属性<code>hashValue</code>直接返回该字符串的<code>hashValue</code>，即可达到遵循<code>Hashable</code>协议的目的。下面定义了<code>PreferenceKey</code>类型，最后它将作为key去访问集合元素。</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">final</span> <span class="class"><span class="keyword">class</span> <span class="title">PreferenceKey</span>&lt;<span class="title">T</span>&gt;: <span class="title">PreferenceKeys</span> </span>&#123; &#125;</div><div class="line"></div><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">PreferenceKeys</span>: <span class="title">RawRepresentable</span>, <span class="title">Hashable</span> </span>&#123;</div><div class="line">    <span class="keyword">let</span> rawValue: <span class="type">String</span></div><div class="line">    </div><div class="line">    <span class="keyword">required</span> <span class="keyword">init</span>!(rawValue: <span class="type">String</span>) &#123;</div><div class="line">        <span class="keyword">self</span>.rawValue = rawValue</div><div class="line">    &#125;</div><div class="line">    </div><div class="line">    <span class="keyword">convenience</span> <span class="keyword">init</span>(<span class="number">_</span> key: <span class="type">String</span>) &#123;</div><div class="line">        <span class="keyword">self</span>.<span class="keyword">init</span>(rawValue: key)</div><div class="line">    &#125;</div><div class="line">    </div><div class="line">    <span class="keyword">var</span> hashValue: <span class="type">Int</span> &#123;</div><div class="line">        <span class="keyword">return</span> rawValue.hashValue</div><div class="line">    &#125;</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="class"><span class="keyword">extension</span> <span class="title">PreferenceKeys</span> </span>&#123;</div><div class="line">    <span class="keyword">static</span> <span class="keyword">let</span> launchAtLogin = <span class="type">PreferenceKey</span>&lt;<span class="type">Bool</span>&gt;(<span class="string">"LaunchAtLogin"</span>)</div><div class="line">    <span class="keyword">static</span> <span class="keyword">let</span> launchCount = <span class="type">PreferenceKey</span>&lt;<span class="type">Int</span>&gt;(<span class="string">"LaunchCount"</span>)</div><div class="line">    <span class="keyword">static</span> <span class="keyword">let</span> userInfo = <span class="type">PreferenceKey</span>&lt;<span class="type">UserInfo</span>&gt;(<span class="string">"UserInfo"</span>)</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>注：如果直接将静态存储属性放在<code>PreferenceKeys</code>中，编译时就会报错：</p>
+<blockquote>
+<p>Static stored properties not support in generic types.</p>
+</blockquote>
+<p>CotEditor通过继承<code>PreferenceKeys</code>，在子类<code>PreferenceKey</code>中支持泛型来巧妙地避开上面的问题。</p>
+<h2 id="Preference-Manager"><a href="#Preference-Manager" class="headerlink" title="Preference Manager"></a>Preference Manager</h2><p>为了方便管理用户的偏好设置，可采用单例模式定义一个<code>PreferenceManager</code>，主要负责包括模块初始化、注册默认配置，提供访问集合元素的方法等工作。</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">final</span> <span class="class"><span class="keyword">class</span> <span class="title">PreferenceManager</span> </span>&#123;</div><div class="line">    <span class="keyword">static</span> <span class="keyword">let</span> shared = <span class="type">PreferenceManager</span>()</div><div class="line">    <span class="keyword">let</span> defaults = <span class="type">UserDefaults</span>.standard</div><div class="line">    </div><div class="line">    <span class="keyword">private</span> <span class="keyword">init</span>() &#123;</div><div class="line">        registerDefaultPreferences()</div><div class="line">    &#125;</div><div class="line">    </div><div class="line">    <span class="keyword">private</span> <span class="function"><span class="keyword">func</span> <span class="title">registerDefaultPreferences</span><span class="params">()</span></span> &#123;</div><div class="line">        <span class="comment">// Convert dictionary of type [PreferenceKey: Any] to [String: Any].</span></div><div class="line">        <span class="keyword">let</span> defaultValues: [<span class="type">String</span>: <span class="type">Any</span>] = defaultPreferences.<span class="built_in">reduce</span>([:]) &#123;</div><div class="line">            <span class="keyword">var</span> dictionary = $<span class="number">0</span></div><div class="line">            dictionary[$<span class="number">1</span>.key.rawValue] = $<span class="number">1</span>.value</div><div class="line">            <span class="keyword">return</span> dictionary</div><div class="line">        &#125;</div><div class="line">        defaults.register(defaults: defaultValues)</div><div class="line">    &#125;</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">let</span> defaultPreferences: [<span class="type">PreferenceKeys</span>: <span class="type">Any</span>] = [</div><div class="line">    .launchAtLogin: <span class="literal">false</span>,</div><div class="line">    .launchCount: <span class="number">0</span>,</div><div class="line">    .userInfo: <span class="type">NSKeyedArchiver</span>.archivedData(withRootObject: <span class="type">UserInfo</span>(id: <span class="number">0</span>, name: <span class="string">""</span>)),</div><div class="line">]</div></pre></td></tr></table></figure>
+<p>上面的代码中<code>registerDefaultPreferences</code>函数通过<a href="https://developer.apple.com/reference/swift/anybidirectionalcollection/2296013-reduce#" target="_blank" rel="external"><code>reduce</code></a>方法将字典类型从<code>[PreferenceKey: Any]</code>转换到<code>[String: Any]</code>，以便<code>UserDefaults</code>注册默认设置。</p>
+<h3 id="Subscript"><a href="#Subscript" class="headerlink" title="Subscript"></a>Subscript</h3><p>为了支持通过方括号<code>[]</code>访问<code>PreferenceManager</code>中的元素，还要实现<code>subscript</code>方法。这里虽然显得有点繁琐，项目中计划支持的类型都需要写一遍，包括自定义类型，如<code>UserInfo</code>。但也只是需要编写一次即可，后面需要新增支持的类型时再添加新方法。</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div><div class="line">68</div><div class="line">69</div><div class="line">70</div><div class="line">71</div><div class="line">72</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">extension</span> <span class="title">PreferenceManager</span> </span>&#123;</div><div class="line">    <span class="keyword">subscript</span>(key: <span class="type">PreferenceKey</span>&lt;<span class="type">Any</span>&gt;) -&gt; <span class="type">Any</span>? &#123;</div><div class="line">        <span class="keyword">get</span> &#123; <span class="keyword">return</span> defaults.object(forKey: key.rawValue) &#125;</div><div class="line">        <span class="keyword">set</span> &#123; defaults.<span class="keyword">set</span>(newValue, forKey: key.rawValue) &#125;</div><div class="line">    &#125;</div><div class="line">    </div><div class="line">    <span class="keyword">subscript</span>(key: <span class="type">PreferenceKey</span>&lt;<span class="type">URL</span>&gt;) -&gt; <span class="type">URL</span>? &#123;</div><div class="line">        <span class="keyword">get</span> &#123; <span class="keyword">return</span> defaults.url(forKey: key.rawValue) &#125;</div><div class="line">        <span class="keyword">set</span> &#123; defaults.<span class="keyword">set</span>(newValue, forKey: key.rawValue) &#125;</div><div class="line">    &#125;</div><div class="line">    </div><div class="line">    <span class="keyword">subscript</span>(key: <span class="type">PreferenceKey</span>&lt;[<span class="type">Any</span>]&gt;) -&gt; [<span class="type">Any</span>]? &#123;</div><div class="line">        <span class="keyword">get</span> &#123; <span class="keyword">return</span> defaults.array(forKey: key.rawValue) &#125;</div><div class="line">        <span class="keyword">set</span> &#123; defaults.<span class="keyword">set</span>(newValue, forKey: key.rawValue) &#125;</div><div class="line">    &#125;</div><div class="line">    </div><div class="line">    <span class="keyword">subscript</span>(key: <span class="type">PreferenceKey</span>&lt;[<span class="type">String</span>: <span class="type">Any</span>]&gt;) -&gt; [<span class="type">String</span>: <span class="type">Any</span>]? &#123;</div><div class="line">        <span class="keyword">get</span> &#123; <span class="keyword">return</span> defaults.dictionary(forKey: key.rawValue) &#125;</div><div class="line">        <span class="keyword">set</span> &#123; defaults.<span class="keyword">set</span>(newValue, forKey: key.rawValue) &#125;</div><div class="line">    &#125;</div><div class="line">    </div><div class="line">    <span class="keyword">subscript</span>(key: <span class="type">PreferenceKey</span>&lt;<span class="type">String</span>&gt;) -&gt; <span class="type">String</span>? &#123;</div><div class="line">        <span class="keyword">get</span> &#123; <span class="keyword">return</span> defaults.string(forKey: key.rawValue) &#125;</div><div class="line">        <span class="keyword">set</span> &#123; defaults.<span class="keyword">set</span>(newValue, forKey: key.rawValue) &#125;</div><div class="line">    &#125;</div><div class="line">    </div><div class="line">    <span class="keyword">subscript</span>(key: <span class="type">PreferenceKey</span>&lt;[<span class="type">String</span>]&gt;) -&gt; [<span class="type">String</span>]? &#123;</div><div class="line">        <span class="keyword">get</span> &#123; <span class="keyword">return</span> defaults.stringArray(forKey: key.rawValue) &#125;</div><div class="line">        <span class="keyword">set</span> &#123; defaults.<span class="keyword">set</span>(newValue, forKey: key.rawValue) &#125;</div><div class="line">    &#125;</div><div class="line">    </div><div class="line">    <span class="keyword">subscript</span>(key: <span class="type">PreferenceKey</span>&lt;<span class="type">Data</span>&gt;) -&gt; <span class="type">Data</span>? &#123;</div><div class="line">        <span class="keyword">get</span> &#123; <span class="keyword">return</span> defaults.data(forKey: key.rawValue) &#125;</div><div class="line">        <span class="keyword">set</span> &#123; defaults.<span class="keyword">set</span>(newValue, forKey: key.rawValue) &#125;</div><div class="line">    &#125;</div><div class="line">    </div><div class="line">    <span class="keyword">subscript</span>(key: <span class="type">PreferenceKey</span>&lt;<span class="type">Bool</span>&gt;) -&gt; <span class="type">Bool</span> &#123;</div><div class="line">        <span class="keyword">get</span> &#123; <span class="keyword">return</span> defaults.bool(forKey: key.rawValue) &#125;</div><div class="line">        <span class="keyword">set</span> &#123; defaults.<span class="keyword">set</span>(newValue, forKey: key.rawValue) &#125;</div><div class="line">    &#125;</div><div class="line">    </div><div class="line">    <span class="keyword">subscript</span>(key: <span class="type">PreferenceKey</span>&lt;<span class="type">Int</span>&gt;) -&gt; <span class="type">Int</span> &#123;</div><div class="line">        <span class="keyword">get</span> &#123; <span class="keyword">return</span> defaults.integer(forKey: key.rawValue) &#125;</div><div class="line">        <span class="keyword">set</span> &#123; defaults.<span class="keyword">set</span>(newValue, forKey: key.rawValue) &#125;</div><div class="line">    &#125;</div><div class="line">    </div><div class="line">    <span class="keyword">subscript</span>(key: <span class="type">PreferenceKey</span>&lt;<span class="type">Float</span>&gt;) -&gt; <span class="type">Float</span> &#123;</div><div class="line">        <span class="keyword">get</span> &#123; <span class="keyword">return</span> defaults.float(forKey: key.rawValue) &#125;</div><div class="line">        <span class="keyword">set</span> &#123; defaults.<span class="keyword">set</span>(newValue, forKey: key.rawValue) &#125;</div><div class="line">    &#125;</div><div class="line">    </div><div class="line">    <span class="keyword">subscript</span>(key: <span class="type">PreferenceKey</span>&lt;<span class="type">Double</span>&gt;) -&gt; <span class="type">Double</span> &#123;</div><div class="line">        <span class="keyword">get</span> &#123; <span class="keyword">return</span> defaults.double(forKey: key.rawValue) &#125;</div><div class="line">        <span class="keyword">set</span> &#123; defaults.<span class="keyword">set</span>(newValue, forKey: key.rawValue) &#125;</div><div class="line">    &#125;</div><div class="line">    </div><div class="line">    <span class="keyword">subscript</span>(key: <span class="type">PreferenceKey</span>&lt;<span class="type">UserInfo</span>&gt;) -&gt; <span class="type">UserInfo</span>? &#123;</div><div class="line">        <span class="keyword">get</span> &#123;</div><div class="line">            <span class="keyword">var</span> object: <span class="type">UserInfo</span>?</div><div class="line">            <span class="keyword">if</span> <span class="keyword">let</span> data = defaults.data(forKey: key.rawValue) &#123;</div><div class="line">                object = <span class="type">NSKeyedUnarchiver</span>.unarchiveObject(with: data) <span class="keyword">as</span>? <span class="type">UserInfo</span></div><div class="line">            &#125;</div><div class="line">            <span class="keyword">return</span> object</div><div class="line">        &#125;</div><div class="line">        <span class="keyword">set</span> &#123;</div><div class="line">            <span class="keyword">if</span> <span class="keyword">let</span> object = newValue &#123;</div><div class="line">                <span class="keyword">let</span> data = <span class="type">NSKeyedArchiver</span>.archivedData(withRootObject: object)</div><div class="line">                defaults.<span class="keyword">set</span>(data, forKey: key.rawValue)</div><div class="line">            &#125;</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>到这里就差不多结束了。不过为了更方便地访问，再定义一个全局变量：</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">let</span> <span class="type">Preferences</span> = <span class="type">PreferenceManager</span>.shared</div></pre></td></tr></table></figure>
+<p>下面是访问偏好设置的最终方式：</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">func</span> <span class="title">demo</span><span class="params">()</span></span> &#123;</div><div class="line">    <span class="keyword">let</span> userDefaults = <span class="type">UserDefaults</span>.standard</div><div class="line">    </div><div class="line">    <span class="comment">// Test data.</span></div><div class="line">    <span class="keyword">var</span> launchAtLogin = <span class="literal">true</span></div><div class="line">    <span class="keyword">var</span> launchCount = <span class="number">10</span></div><div class="line">    <span class="keyword">var</span> userInfo: <span class="type">UserInfo</span>? = <span class="type">UserInfo</span>(id: <span class="number">123</span>, name: <span class="string">"Fox"</span>)</div><div class="line">    </div><div class="line">    <span class="comment">// Write preference.</span></div><div class="line">    <span class="type">Preferences</span>[.launchAtLogin] = launchAtLogin</div><div class="line">    <span class="type">Preferences</span>[.launchCount] = launchCount</div><div class="line">    <span class="type">Preferences</span>[.userInfo] = userInfo</div><div class="line">    </div><div class="line">    <span class="comment">// Read preference.</span></div><div class="line">    launchAtLogin = <span class="type">Preferences</span>[.launchAtLogin]</div><div class="line">    launchCount = <span class="type">Preferences</span>[.launchCount]</div><div class="line">    userInfo = <span class="type">Preferences</span>[.userInfo]</div><div class="line">    </div><div class="line">    <span class="comment">// Check preferences.</span></div><div class="line">    <span class="keyword">for</span> (key, value) <span class="keyword">in</span> userDefaults.dictionaryRepresentation() &#123;</div><div class="line">        <span class="built_in">print</span>(<span class="string">"<span class="subst">\(key)</span>: <span class="subst">\(value)</span>"</span>)</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>相比开头的那种方式是不是看起来很清爽？简直和读写字典元素一毛一样。我们通过这种方式把<code>NSKeyedArchiver/NSKeyedUnarchiver</code>的编解码过程和<code>UserDefaults</code>的读写过程都封装起来之后，即使是自定义类型的访问也和基本类型毫无差别了，也不用去操心我们访问的设置是什么数据类型。</p>
+<p>但不得不说这种方式目前还是有个小遗憾，那就是Xcode有时候会一脸懵逼变白板，但出现的次数也不多。这应该是因为Swift类型推断相对复杂，导致Xcode有点吃不消。大不了通过添加类型，放弃这部分类型推断，从而减小Xcode的负担来解决，使用<code>Preferences[PreferenceKey.launchAtLogin]</code>来访问。不过随着Swift和Xcode的不断优化，相信这种情况会慢慢改善。</p>
+<h1 id="后记"><a href="#后记" class="headerlink" title="后记"></a>后记</h1><p>读源码是学习新招式的一个非常好的途径。开始时可能只是学习和模仿，新招式积累多了，加上思考和总结，慢慢地自己也会有更多创造性的点子。</p>
+<p>如果大家有其他新姿势，期待你们的分享。我把代码放到了<a href="https://github.com/hulizhen/FoxDemos/" target="_blank" rel="external">GitHub</a>上了，前一种方式对应的Commit: 7d32ddb，后一种方式对应的Commit: 0f26fb5，大家可以clone一份自己感受感受。</p>
+<p>最后，感谢CotEditor，感谢开源。</p>
+<h1 id="参考链接"><a href="#参考链接" class="headerlink" title="参考链接"></a>参考链接</h1><ul>
+<li><a href="https://github.com/coteditor/CotEditor" target="_blank" rel="external">CotEditor</a></li>
+<li><a href="http://khanlou.com/2016/07/implementing-dictionary-in-swift/" target="_blank" rel="external">Implementing Dictionary In Swift</a></li>
+</ul>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+      <div>
+        <div style="padding: 10px 0; margin: 20px auto; width: 90%; text-align: center;">
+  <div></div>
+  <button id="rewardButton" disable="enable" onclick="var qr = document.getElementById('QR'); if (qr.style.display === 'none') {qr.style.display='block';} else {qr.style.display='none'}">
+    <span>Donate</span>
+  </button>
+  <div id="QR" style="display: none;">
+
+    
+      <div id="wechat" style="display: inline-block">
+        <img id="wechat_qr" src="/images/wechatpay.jpg" alt="智多芯 WeChat Pay"/>
+        <p>WeChat Pay</p>
+      </div>
+    
+
+    
+      <div id="alipay" style="display: inline-block">
+        <img id="alipay_qr" src="/images/alipay.jpg" alt="智多芯 Alipay"/>
+        <p>Alipay</p>
+      </div>
+    
+
+    
+
+  </div>
+</div>
+
+      </div>
+    
+
+    
+      <div>
+        <ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者：</strong>
+    智多芯
+  </li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="http://blog.hulizhen.me/manage-user-preferences-elegantly-in-swift/" title="用Swift更优雅地管理用户偏好设置">http://blog.hulizhen.me/manage-user-preferences-elegantly-in-swift/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>
+    本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/3.0/" rel="external nofollow" target="_blank">CC BY-NC-SA 3.0</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+
+      </div>
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/swift/" rel="tag"># Swift</a>
+          
+            <a href="/tags/userdefaults/" rel="tag"># UserDefaults</a>
+          
+            <a href="/tags/hashable/" rel="tag"># Hashable</a>
+          
+            <a href="/tags/nscoding/" rel="tag"># NSCoding</a>
+          
+        </div>
+      
+
+      
+      
+        <div class="post-widgets">
+        
+          <div class="wp_rating">
+            <div id="wpac-rating"></div>
+          </div>
+        
+
+        
+        </div>
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/traverse-properties-of-object-using-swift-reflection/" rel="next" title="利用Swift的反射机制遍历对象属性">
+                <i class="fa fa-chevron-left"></i> 利用Swift的反射机制遍历对象属性
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/the-tools-that-promot-happiness/" rel="prev" title="提升幸福感的利器们">
+                提升幸福感的利器们 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div id="disqus_thread">
+        <noscript>
+          Please enable JavaScript to view the
+          <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a>
+        </noscript>
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+      <div id="sidebar-dimmer"></div>
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/avatar.jpg"
+               alt="智多芯" />
+          <p class="site-author-name" itemprop="name">智多芯</p>
+           
+              <p class="site-description motion-element" itemprop="description"></p>
+           
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives/">
+                <span class="site-state-item-count">5</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-categories">
+              <a href="/categories/index.html">
+                <span class="site-state-item-count">3</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">7</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+          <div class="feed-link motion-element">
+            <a href="/atom.xml" rel="alternate">
+              <i class="fa fa-rss"></i>
+              RSS
+            </a>
+          </div>
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/hulizhen" target="_blank" title="GitHub">
+                  
+                    <i class="fa fa-fw fa-github"></i>
+                  
+                    
+                      GitHub
+                    
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://weibo.com/hulz" target="_blank" title="Weibo">
+                  
+                    <i class="fa fa-fw fa-weibo"></i>
+                  
+                    
+                      Weibo
+                    
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="https://www.zhihu.com/people/hulizhen" target="_blank" title="ZhiHu">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                    
+                      ZhiHu
+                    
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#准备"><span class="nav-number">1.</span> <span class="nav-text">准备</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#一般的方式"><span class="nav-number">2.</span> <span class="nav-text">一般的方式</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#更优雅的方式"><span class="nav-number">3.</span> <span class="nav-text">更优雅的方式</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Preference-Key"><span class="nav-number">3.1.</span> <span class="nav-text">Preference Key</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Hashable"><span class="nav-number">3.1.1.</span> <span class="nav-text">Hashable</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#RawRepresentable"><span class="nav-number">3.1.2.</span> <span class="nav-text">RawRepresentable</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Preference-Manager"><span class="nav-number">3.2.</span> <span class="nav-text">Preference Manager</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Subscript"><span class="nav-number">3.2.1.</span> <span class="nav-text">Subscript</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#后记"><span class="nav-number">4.</span> <span class="nav-text">后记</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#参考链接"><span class="nav-number">5.</span> <span class="nav-text">参考链接</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-smile-o"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">智多芯</span>
+</div>
+
+
+
+        
+<div class="busuanzi-count">
+  <script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+  
+    <span class="site-uv">
+      <i class="fa fa-user"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_uv"></span>
+      
+    </span>
+  
+
+  
+    <span class="site-pv">
+      <i class="fa fa-eye"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_pv"></span>
+      
+    </span>
+  
+</div>
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+          <span id="scrollpercent"><span>0</span>%</span>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.2"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  
+
+    
+      <script id="dsq-count-scr" src="https://.disqus.com/count.js" async></script>
+    
+
+    
+      <script type="text/javascript">
+        var disqus_config = function () {
+          this.page.url = 'http://blog.hulizhen.me/manage-user-preferences-elegantly-in-swift/';
+          this.page.identifier = 'manage-user-preferences-elegantly-in-swift/';
+          this.page.title = '用Swift更优雅地管理用户偏好设置';
+        };
+        var d = document, s = d.createElement('script');
+        s.src = 'https://.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', '' + +new Date());
+        (d.head || d.body).appendChild(s);
+      </script>
+    
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+  <script src="https://cdn1.lncld.net/static/js/av-core-mini-0.6.4.js"></script>
+  <script>AV.initialize("36uCWovHUDlUylFO4SyHomsJ-gzGzoHsz", "CjNqEnfkcd2xABolsSmpcgbM");</script>
+  <script>
+    function showTime(Counter) {
+      var query = new AV.Query(Counter);
+      var entries = [];
+      var $visitors = $(".leancloud_visitors");
+
+      $visitors.each(function () {
+        entries.push( $(this).attr("id").trim() );
+      });
+
+      query.containedIn('url', entries);
+      query.find()
+        .done(function (results) {
+          var COUNT_CONTAINER_REF = '.leancloud-visitors-count';
+
+          if (results.length === 0) {
+            $visitors.find(COUNT_CONTAINER_REF).text(0);
+            return;
+          }
+
+          for (var i = 0; i < results.length; i++) {
+            var item = results[i];
+            var url = item.get('url');
+            var time = item.get('time');
+            var element = document.getElementById(url);
+
+            $(element).find(COUNT_CONTAINER_REF).text(time);
+          }
+          for(var i = 0; i < entries.length; i++) {
+            var url = entries[i];
+            var element = document.getElementById(url);
+            var countSpan = $(element).find(COUNT_CONTAINER_REF);
+            if( countSpan.text() == '') {
+              countSpan.text(0);
+            }
+          }
+        })
+        .fail(function (object, error) {
+          console.log("Error: " + error.code + " " + error.message);
+        });
+    }
+
+    function addCount(Counter) {
+      var $visitors = $(".leancloud_visitors");
+      var url = $visitors.attr('id').trim();
+      var title = $visitors.attr('data-flag-title').trim();
+      var query = new AV.Query(Counter);
+
+      query.equalTo("url", url);
+      query.find({
+        success: function(results) {
+          if (results.length > 0) {
+            var counter = results[0];
+            counter.fetchWhenSave(true);
+            counter.increment("time");
+            counter.save(null, {
+              success: function(counter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(counter.get('time'));
+              },
+              error: function(counter, error) {
+                console.log('Failed to save Visitor num, with error message: ' + error.message);
+              }
+            });
+          } else {
+            var newcounter = new Counter();
+            /* Set ACL */
+            var acl = new AV.ACL();
+            acl.setPublicReadAccess(true);
+            acl.setPublicWriteAccess(true);
+            newcounter.setACL(acl);
+            /* End Set ACL */
+            newcounter.set("title", title);
+            newcounter.set("url", url);
+            newcounter.set("time", 1);
+            newcounter.save(null, {
+              success: function(newcounter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(newcounter.get('time'));
+              },
+              error: function(newcounter, error) {
+                console.log('Failed to create');
+              }
+            });
+          }
+        },
+        error: function(error) {
+          console.log('Error:' + error.code + " " + error.message);
+        }
+      });
+    }
+
+    $(function() {
+      var Counter = AV.Object.extend("Counter");
+      if ($('.leancloud_visitors').length == 1) {
+        addCount(Counter);
+      } else if ($('.post-title-link').length > 1) {
+        showTime(Counter);
+      }
+    });
+  </script>
+
+
+
+  
+<script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script>
+
+
+  
+  <script type="text/javascript">
+  wpac_init = window.wpac_init || [];
+  wpac_init.push({widget: 'Rating', id: ,
+    el: 'wpac-rating',
+    color: 'fc6423'
+  });
+  (function() {
+    if ('WIDGETPACK_LOADED' in window) return;
+    WIDGETPACK_LOADED = true;
+    var mc = document.createElement('script');
+    mc.type = 'text/javascript';
+    mc.async = true;
+    mc.src = '//embed.widgetpack.com/widget.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(mc, s.nextSibling);
+  })();
+  </script>
+
+
+  
+
+  
+  <script type="text/javascript" src="/js/src/js.cookie.js?v=5.1.2"></script>
+  <script type="text/javascript" src="/js/src/scroll-cookie.js?v=5.1.2"></script>
+
+
+  
+  <script type="text/javascript" src="/js/src/exturl.js?v=5.1.2"></script>
+
+
+</body>
+</html>
